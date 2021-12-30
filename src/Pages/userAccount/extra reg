@@ -1,0 +1,258 @@
+import React, { useState } from 'react';
+import { Spinner } from 'react-bootstrap';
+import { useHistory } from 'react-router';
+import { NavLink } from 'react-router-dom';
+import useAuth from '../../../hooks/useAuth';
+// import useFirebase from '../../../hooks/useFirebase';
+import './Register.css'
+
+const Register = () => {
+  //  const [store,setStore]=useState('')
+   const [loginData,setLoginData]=useState({})
+   const history=useHistory()
+   const {registerUser,isLoading,user,authError}=useAuth()
+    const handleonBlur=e=>{
+      const field=e.target.name;
+      const value=e.target.value;
+      const newLoginData={...loginData}
+      newLoginData[field]=value;
+      console.log(newLoginData)
+      setLoginData(newLoginData)
+    }
+
+    const handleRegister=e=>{
+        registerUser(loginData.email, loginData.password)
+        e.preventDefault()
+
+    }
+    return (
+        <div className=' mx-auto  p-5 m-5 background-design'>
+        <h2 className='text-2xl font-bold'>Please Register</h2>
+      
+      {
+          !isLoading && 
+          <form onSubmit={handleRegister} className='text-left my-5'>
+          <div>
+              <label htmlFor='name' className='emails'>
+                Name:
+              </label>
+              <br />
+            
+              <input
+              type='name'
+              onBlur={handleonBlur}
+              name='name'
+              // id='name'
+              // style={{className:'w-50'}}
+              // onBlur={handleName}
+              required
+              className=' outline-none px-3 py-2 '
+            />
+           
+            </div>
+  
+  
+            <div>
+              <label htmlFor='email' className='emails'>
+                Email:
+              </label>
+              <br />
+              <input
+                type='email'
+                name='email'
+                // id='email'
+                onBlur={handleonBlur}
+                required
+                className=' outline-none px-3 py-2 '
+              />
+            </div>
+            <div className='mt-2'>
+              <label htmlFor='password' className='emails'>
+                Password:
+              </label>
+              <br />
+              <input
+                type='password'
+                name='passowrd'
+                // id='password'
+                onBlur={handleonBlur}
+                required
+                className='text-md outline-none px-3 py-2 '
+              />
+            </div>
+
+            <button
+              type='submit'
+              className='bg-dark text-white px-4 py-2  mt-3 w-full'
+            >
+              Register
+            </button>
+            <br/>
+            <br/>
+
+            <NavLink style={{textDecoration:"none"}} to='/login'>
+          <button variant="text">Already Register? please Login</button>
+      </NavLink>
+
+           
+          </form>
+
+          
+      }
+
+{isLoading && <Spinner animation="border" variant="danger" />}
+     
+      {
+          
+            authError && 
+            <h1>{authError}</h1>
+        
+      }
+    
+        {/* <button className="googles" onClick={signInGoogle}>google</button> */}
+    
+    
+       
+      </div>
+    );
+};
+
+export default Register;
+
+
+
+
+
+
+
+// firebase 
+
+import initializeAuthentication from "../Pages/firebase/firebase.init"
+import { getAuth, createUserWithEmailAndPassword,signOut , onAuthStateChanged ,signInWithEmailAndPassword ,GoogleAuthProvider ,signInWithPopup ,updateProfile} from "firebase/auth";
+import { useEffect, useState } from "react";
+
+initializeAuthentication()
+const useFirebase=()=>{
+    const[user,setUser]=useState({})
+    const [isLoading,setIsLoading]=useState(true)
+    const [authError,setAuthError]=useState('')
+
+
+
+    const auth = getAuth();
+    const googleProvider = new GoogleAuthProvider();
+
+    const registerUser=(email,password)=>{
+        setIsLoading(true)
+        createUserWithEmailAndPassword(auth, email, password)
+  .then((userCredential) => {
+    // const newUser={email,displayName:name}
+    // setUser(newUser)
+    const user=userCredential.user;
+    // save user to databse 
+    // saveUserDatabase(email,name)
+    // send name to firebase after creation 
+    // updateProfile(auth.currentUser, {
+    //   displayName:name
+    // }).then(() => {
+      
+    // }).catch((error) => {
+    
+    // });
+
+   setAuthError('')
+  //  history.replace('/login')
+  })
+  .catch((error) => {
+    // const errorCode = error.code;
+    setAuthError(error.message) 
+    // ..
+  })
+      .finally(()=> setIsLoading(false));
+    }
+
+    // login 
+    // login 
+    const loginUser=(email,password,location,history)=>{
+        setIsLoading(true)
+         signInWithEmailAndPassword(auth, email, password)
+   .then((userCredential) => {
+    //  const destination=location?.state?.from || '/'
+    //  history.push(destination)
+     setAuthError('')
+   })
+   .catch((error) => {
+     // const errorCode = error.code;
+     setAuthError(error.message) 
+   })
+   .finally(()=> setIsLoading(false));
+     }
+
+
+    //  googlelogin 
+    const signInGoogle=(location,history)=>{
+        signInWithPopup(auth, googleProvider)
+        .then((result) => {
+          const user = result.user;
+          // saveUserDatabase(user.email, user.displayName,'PUT')
+        
+          setAuthError('');
+          // const destination=location?.state?.from || '/'
+          // history.push(destination)
+          // console.log(destination)
+         
+          // ...
+        }).catch((error) => {
+          setAuthError(error.message) 
+        }).finally(()=> setIsLoading(false));
+      }
+
+      useEffect(()=>{
+        const unsubscribe=  onAuthStateChanged(auth, (user) => {
+              if (user) {
+              setUser(user)
+            
+              } else {
+               setUser({})
+              }
+              setIsLoading(false)
+            });
+            return ()=>unsubscribe;
+      },[])
+
+      const logout=()=>{
+        setIsLoading(true)
+        signOut(auth).then(() => {
+            // Sign-out successful.
+            
+          }).catch((error) => {
+            // An error happened.
+          })
+          .finally(()=> setIsLoading(false));
+    }
+
+     //  user registration information (store to the database )
+    //  const saveUserDatabase =(email,displayName) => {
+    //     const user={email,displayName}
+    //     fetch('https://shielded-beach-03067.herokuapp.com/userLogin', {
+    //       method:'POST',
+    //       headers:{
+    //         'content-type':'application/json'
+    //       },
+    //       body:JSON.stringify(user)
+    //     })
+    //     .then()
+  
+    //   }
+    return {
+        user,
+        logout,
+        registerUser,
+        loginUser,
+        authError,
+        signInGoogle,
+        isLoading
+    }
+}
+
+export default useFirebase;

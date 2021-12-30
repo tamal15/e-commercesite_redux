@@ -1,0 +1,25 @@
+.dashboard {
+    background-color:linen;
+    height: 100vh;
+    color: white;
+    cursor: pointer;
+    /* padding: 10px; */
+    
+  }
+  .dashboard-menu {
+    list-style: none;
+    margin-top: 10px;
+  }
+  .dashboard-menu:hover {
+    color: cyan;
+  }
+.tops{
+    margin-top: 200px;
+}  
+
+
+.dashboards{
+  line-height: 110px;
+  
+  background-color: bisque;
+}
